@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.2.7 - Match strength and mixed profile presentation
+
+- Reframed result presentation from raw numeric match scores to match strength labels: clear, leaning, light, and mixed.
+- Kept distance-based archetype sorting as an internal score without normalizing the current maximum to 100.
+- Added five-domain profile highlights so mixed results can be read as a philosophical pattern rather than a failed archetype match.
+- Updated result copy, related archetype labels, and share text to avoid treating the result as an exam-like percentage.
+- Kept the v0.2.6 question model, 80/20 scoring weight, and hand-written archetype library unchanged.
+
+## v0.2.6 - Cross-domain thought experiment model
+
+- Reworked thought experiments into four integrated scenarios with five hidden domain steps each.
+- Moved experiment scoring from scenario-level dimensions to step-level dimensions, reducing single-scene bias.
+- Kept ten low-cue calibration questions and the 80/20 experiment/calibration weighting, with ranking calibration for multi-tradition domains.
+- Added internal representativeness tests for domain coverage, tradition balance, archetype reachability, and simulated result concentration.
+- Updated path replay to show the plain-language focus of each decision step.
+
+## v0.2.5 - Five-domain thought experiment model
+
+- Reworked the assessment into five philosophy domains: epistemology, ontology, ethics, political/social philosophy, and life/meaning philosophy.
+- Added five thought experiments with twenty costed choice steps as the primary scoring surface.
+- Rewrote the experiment and calibration prompts to avoid repeated scenarios, reduce academic wording, and reveal only the selected option's cost after selection.
+- Kept ten low-cue paired calibration items and combined them with thought experiments at an 80/20 weight.
+- Replaced the four-axis vector with a mixed model: two axis scores plus three multi-tradition distributions.
+- Rebuilt the result system around fifteen hand-written archetypes, dynamic five-domain profiles, and thought experiment path replay.
+- Reworked calibration from agree/disagree Likert items into two-sided reflective choices so the shorter check remains more philosophically pointed.
+
+## v0.2.1 - Mixed method and low-cue quiz flow
+
+- Reworked the question set into 24 Likert items, 8 two-choice value conflicts, and 4 optional subjective reflections.
+- Hid dimension names, endpoint labels, and item direction cues from the quiz flow to reduce answer priming.
+- Randomized scored questions on each restart while keeping optional reflections at the end.
+- Added conflict scoring and preserved subjective answers for result-page reflection without including them in the score.
+- Updated tests for mixed question balance, conflict scoring, optional subjective answers, and deterministic shuffling.
+
+## v0.2.0 - Likert spectrum model
+
+- Reworked the test from 20 forced-choice scenarios into 32 five-point Likert items.
+- Reframed the four dimensions as philosophy spectrum axes: experience/reason, self-generated meaning/purpose order, consequence/principle, and individual/community.
+- Expanded results from eight archetypes to sixteen spectrum archetypes with philosophy school labels and academic notes.
+- Updated scoring to average reverse-keyed Likert items by dimension and match results against 16 axis signatures.
+- Updated the quiz and result views for Likert answering, ideology spectrum tags, and clearer non-diagnostic wording.
+- Verified updated content/scoring tests and production build.
+
 ## v0.1.0 - Local prototype
 
 - Built a pure frontend React/Vite philosophy archetype test.
