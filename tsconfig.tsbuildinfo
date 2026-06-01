@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/data/knowledge.ts","./src/data/questions.ts","./src/data/results.ts","./src/lib/scoring.ts","./src/lib/share.ts","./src/lib/types.ts"],"version":"5.9.3"}
