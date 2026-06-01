@@ -1,8 +1,9 @@
 {
   "name": "philosophy-archetype-test",
   "private": true,
-  "version": "0.2.7",
+  "version": "0.3.0",
   "type": "module",
+  "packageManager": "pnpm@11.5.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
@@ -11,6 +12,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.555.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",

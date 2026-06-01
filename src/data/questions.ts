@@ -37,15 +37,15 @@ export const questions: Question[] = [
           {
             id: 'consequence',
             label: '先暂停扩散',
-            benefit: '可以先把可能的伤害压下来。',
-            cost: '但有人会觉得这是在替问题降温。',
+            benefit: '可以减少未经核实的伤害扩散，为之后修正留下余地。',
+            cost: '但有人会觉得你把追问问题的速度压慢了。',
             scoring: { mode: 'tradition', tradition: 'consequence' },
           },
           {
             id: 'principle',
-            label: '先通知当事人回应',
-            benefit: '可以让被指控的人有说明机会。',
-            cost: '但公开回应可能让冲突立刻升级。',
+            label: '先守住说明机会',
+            benefit: '可以避免人在没有回应前就被事实性地定罪。',
+            cost: '但公开说明可能让冲突立刻升级。',
             scoring: { mode: 'tradition', tradition: 'principle' },
           },
           {
@@ -78,9 +78,9 @@ export const questions: Question[] = [
           },
           {
             id: 'republic',
-            label: '开一次有规则的说明会',
-            benefit: '可以让每个人按同一流程发言。',
-            cost: '但流程会慢，情绪也不一定等得住。',
+            label: '开一次可共同修正的说明会',
+            benefit: '可以让处理办法公开参与，发言顺序也能被共同质询。',
+            cost: '但讨论会慢，情绪也不一定等得住。',
             scoring: { mode: 'tradition', tradition: 'republic' },
           },
           {
@@ -102,7 +102,7 @@ export const questions: Question[] = [
       {
         id: 'club-step-4',
         dimension: 'ontology',
-        prompt: '有人说这件事证明社团已经“不是原来的样子”。你会先看什么？',
+        prompt: '有人说这件事暴露了社团的真实性质。你会先看什么？',
         options: [
           {
             id: 'nature',
@@ -113,9 +113,9 @@ export const questions: Question[] = [
           },
           {
             id: 'idea',
-            label: '看大家心里认的形象',
-            benefit: '可以抓住这个团体在人心里的样子。',
-            cost: '但每个人心里的图像可能并不一样。',
+            label: '看它被怎样解释和命名',
+            benefit: '可以抓住这个团体被赋予的意义和声誉。',
+            cost: '但解释太顺时可能遮住账目和行为本身。',
             scoring: { mode: 'tradition', tradition: 'idea' },
           },
           {
@@ -167,7 +167,7 @@ export const questions: Question[] = [
       {
         id: 'factory-step-1',
         dimension: 'ontology',
-        prompt: '改造前，大家争论“这里还算不算原来的地方”。你会先看哪一点？',
+        prompt: '改造前，大家争论这个地方的价值应由什么决定。你会先看哪一点？',
         options: [
           {
             id: 'nature',
@@ -178,15 +178,15 @@ export const questions: Question[] = [
           },
           {
             id: 'idea',
-            label: '保留居民记得的样子',
-            benefit: '可以让共同回忆还有落脚处。',
-            cost: '但不同人的回忆可能互相冲突。',
+            label: '保留居民讲述它的方式',
+            benefit: '可以让这个地方被赋予的意义还有落脚处。',
+            cost: '但不同人的叙述可能互相冲突。',
             scoring: { mode: 'tradition', tradition: 'idea' },
           },
           {
             id: 'essence',
             label: '保留它作为劳动场所的重心',
-            benefit: '可以让改造不失去原来的骨架。',
+            benefit: '可以让改造不失去劳动记忆的骨架。',
             cost: '但新的生活功能会被旧重心限制。',
             scoring: { mode: 'tradition', tradition: 'essence' },
           },
@@ -213,8 +213,8 @@ export const questions: Question[] = [
           },
           {
             id: 'republic',
-            label: '让居民代表一起定表',
-            benefit: '可以让安排经过公开讨论。',
+            label: '让居民代表公开协商并可调整',
+            benefit: '可以让安排经过公开参与，后续也能共同修正。',
             cost: '但会议多了以后会拖慢落地。',
             scoring: { mode: 'tradition', tradition: 'republic' },
           },
@@ -269,8 +269,8 @@ export const questions: Question[] = [
           },
           {
             id: 'right',
-            label: '先看方案自身是否合理',
-            benefit: '可以判断设计里有没有清楚结构。',
+            label: '先看方案的理由是否连得上',
+            benefit: '可以判断设计目标、动线和限制是否互相支撑。',
             cost: '但纸面上合理不等于现场好用。',
             scoring: { mode: 'axis', pole: 'right' },
           },
@@ -283,15 +283,15 @@ export const questions: Question[] = [
         options: [
           {
             id: 'consequence',
-            label: '先算怎样损失最小',
-            benefit: '可以尽快找出补偿和替代办法。',
-            cost: '但小店被迫离开的委屈可能被数字盖住。',
+            label: '先找长期损害最小的方案',
+            benefit: '可以比较补偿、替代和后续影响，减少连锁伤害。',
+            cost: '但小店被迫离开的委屈可能被方案语言盖住。',
             scoring: { mode: 'tradition', tradition: 'consequence' },
           },
           {
             id: 'principle',
-            label: '先确认它应有的权利',
-            benefit: '可以防止改造方随便牺牲一方。',
+            label: '先确认不可牺牲的边界',
+            benefit: '可以防止改造方为了进度随便越过一方权利。',
             cost: '但谈判会变硬，项目可能停住。',
             scoring: { mode: 'tradition', tradition: 'principle' },
           },
@@ -327,14 +327,14 @@ export const questions: Question[] = [
         options: [
           {
             id: 'consequence',
-            label: '先看会不会安慰更多人',
-            benefit: '可以让技术先服务眼前的伤痛。',
-            cost: '但短暂安慰可能留下更复杂的后劲。',
+            label: '先评估安慰和后劲',
+            benefit: '可以把眼前安慰、后续依赖和可能伤害一起看见。',
+            cost: '但这种评估可能显得不够尊重当下悲伤。',
             scoring: { mode: 'tradition', tradition: 'consequence' },
           },
           {
             id: 'principle',
-            label: '先问有没有得到允许',
+            label: '先问有没有明确授权',
             benefit: '可以守住不能随便替人发声的边界。',
             cost: '但有些真实需要会因此没有出口。',
             scoring: { mode: 'tradition', tradition: 'principle' },
@@ -369,9 +369,9 @@ export const questions: Question[] = [
           },
           {
             id: 'idea',
-            label: '它承载了人们心里的那个人',
-            benefit: '可以理解它为什么会让人动情。',
-            cost: '但感受太强时可能遮住它并非本人。',
+            label: '它被当成某种陪伴象征',
+            benefit: '可以理解声音被赋予的亲近和纪念意义。',
+            cost: '但象征太强时可能遮住它并非本人。',
             scoring: { mode: 'tradition', tradition: 'idea' },
           },
           {
@@ -446,8 +446,8 @@ export const questions: Question[] = [
           },
           {
             id: 'republic',
-            label: '公开制定申请和审核流程',
-            benefit: '可以让服务不靠私下关系决定。',
+            label: '公开制定可申诉的审核办法',
+            benefit: '可以让使用条件公开参与，也避免任意批准。',
             cost: '但流程会把很私人的悲伤带进表格里。',
             scoring: { mode: 'tradition', tradition: 'republic' },
           },
@@ -490,9 +490,9 @@ export const questions: Question[] = [
           },
           {
             id: 'republic',
-            label: '公开排队和登记规则',
-            benefit: '可以让分配过程被大家看见。',
-            cost: '但规则会显得冷，特殊情况处理较慢。',
+            label: '公开规则并保留申诉',
+            benefit: '可以让分配过程被大家看见，也能修正明显不合处境的安排。',
+            cost: '但公开程序会显得冷，特殊情况处理较慢。',
             scoring: { mode: 'tradition', tradition: 'republic' },
           },
           {
@@ -539,14 +539,14 @@ export const questions: Question[] = [
         options: [
           {
             id: 'consequence',
-            label: '先看多给会不会影响别人',
-            benefit: '可以把眼前风险降到最低。',
+            label: '先看怎样减少整体风险',
+            benefit: '可以把药品不足带来的连锁伤害降到最低。',
             cost: '但撒谎本身可能被轻轻放过。',
             scoring: { mode: 'tradition', tradition: 'consequence' },
           },
           {
             id: 'principle',
-            label: '先守住不能谎报',
+            label: '先守住不能谎报的底线',
             benefit: '可以保护所有人对分配的信任。',
             cost: '但紧急处境里的真实恐惧可能被忽略。',
             scoring: { mode: 'tradition', tradition: 'principle' },
@@ -570,7 +570,7 @@ export const questions: Question[] = [
       {
         id: 'flood-step-4',
         dimension: 'ontology',
-        prompt: '安置点里有人争论：被冲毁的家还算不算家。你会先看什么？',
+        prompt: '安置点里有人争论：什么才让一个地方成为家。你会先看什么？',
         options: [
           {
             id: 'nature',
@@ -581,9 +581,9 @@ export const questions: Question[] = [
           },
           {
             id: 'idea',
-            label: '看人心里还怎样记着它',
-            benefit: '可以让家不只取决于墙还在不在。',
-            cost: '但记忆无法直接挡风遮雨。',
+            label: '看“家”被怎样理解和讲述',
+            benefit: '可以让家不只取决于墙还在不在，而包括被赋予的意义。',
+            cost: '但意义无法直接挡风遮雨。',
             scoring: { mode: 'tradition', tradition: 'idea' },
           },
           {
@@ -632,7 +632,7 @@ export const questions: Question[] = [
     prompt: '听到两个说法互相冲突时，你通常先抓哪一头？',
     context: '这是轻量校准题，请按你更自然的判断习惯选择。',
     leftLabel: '先看谁能被复查',
-    rightLabel: '先看哪套说法更连贯',
+    rightLabel: '先看解释框架是否连贯',
     scoring: { mode: 'axis', leftPole: 'left', rightPole: 'right' },
   },
   {
@@ -641,20 +641,20 @@ export const questions: Question[] = [
     dimension: 'epistemology',
     prompt: '别人讲了一个很顺的故事，你更容易被哪件事拉住？',
     leftLabel: '有没有外人也能查到的依据',
-    rightLabel: '里面的理由有没有自洽',
+    rightLabel: '它的理由链条是否自洽',
     scoring: { mode: 'axis', leftPole: 'left', rightPole: 'right' },
   },
   {
     id: 'ontology-calibration-01',
     kind: 'calibration',
     dimension: 'ontology',
-    prompt: '一部手机换了主板又恢复资料。请按你判断“还是不是原来的”时的优先顺序排序。',
+    prompt: '一个线上共同体没有固定场地，却有记录、称呼、规范和长期互动。请按你判断它靠什么成立的优先顺序排序。',
     context: '这里问的是你解释现实的起手式，不是术语选择。',
     options: [
-      { id: 'nature', label: '留下来的零件和痕迹', description: '先看可见材料和实际组成。', tradition: 'nature' },
-      { id: 'idea', label: '使用者心里认的那个它', description: '先看它在人心里的连续感。', tradition: 'idea' },
-      { id: 'essence', label: '它原本最关键的作用', description: '先看核心功能有没有保持。', tradition: 'essence' },
-      { id: 'process', label: '它怎样继续被使用', description: '先看日常使用有没有接上。', tradition: 'process' },
+      { id: 'nature', label: '服务器记录和账号痕迹', description: '先看可核验材料和实际组成。', tradition: 'nature' },
+      { id: 'idea', label: '成员如何解释和命名它', description: '先看共同体身份如何被赋予。', tradition: 'idea' },
+      { id: 'essence', label: '它承担的关键功能', description: '先看核心作用是否清楚。', tradition: 'essence' },
+      { id: 'process', label: '互动是否持续运转', description: '先看日常实践有没有接上。', tradition: 'process' },
     ],
     scoring: { mode: 'tradition-ranking' },
   },
@@ -662,12 +662,12 @@ export const questions: Question[] = [
     id: 'ontology-calibration-02',
     kind: 'calibration',
     dimension: 'ontology',
-    prompt: '一首歌被很多人改编后，请按你判断它是否还是那首歌时的优先顺序排序。',
+    prompt: '一件旧工具被改造成纪念物后，请按你判断它主要是什么时的优先顺序排序。',
     options: [
-      { id: 'essence', label: '主旋律是否还在', description: '先看最核心的形状有没有变。', tradition: 'essence' },
-      { id: 'process', label: '它是否还被人继续唱活', description: '先看它有没有在使用中延续。', tradition: 'process' },
-      { id: 'nature', label: '声音和节奏是否接近', description: '先看听得见的材料是否相连。', tradition: 'nature' },
-      { id: 'idea', label: '听众是否还认它为同一首', description: '先看共同理解是否还在。', tradition: 'idea' },
+      { id: 'essence', label: '它现在承担的核心作用', description: '先看功能和用途已经指向哪里。', tradition: 'essence' },
+      { id: 'process', label: '它怎样进入新的使用实践', description: '先看它在新的活动中如何运转。', tradition: 'process' },
+      { id: 'nature', label: '它保留的材料和磨损', description: '先看可见材料是否还在场。', tradition: 'nature' },
+      { id: 'idea', label: '人们如何讲述它的意义', description: '先看它被怎样象征和命名。', tradition: 'idea' },
     ],
     scoring: { mode: 'tradition-ranking' },
   },
@@ -678,8 +678,8 @@ export const questions: Question[] = [
     prompt: '班级里只有一个推荐名额。请按你做决定时最放不下的考虑排序。',
     context: '请想象真实处境，而不是选择更好听的说法。',
     options: [
-      { id: 'consequence', label: '给谁能带来更大帮助', description: '先看选择会改善谁的处境。', tradition: 'consequence' },
-      { id: 'principle', label: '谁按规则更该得到', description: '先看程序和资格是否站得住。', tradition: 'principle' },
+      { id: 'consequence', label: '给谁能带来更持久的改善', description: '先看选择会减少谁的长期损害。', tradition: 'consequence' },
+      { id: 'principle', label: '谁有不能被跳过的资格', description: '先看权利边界和正当资格是否站得住。', tradition: 'principle' },
       { id: 'virtue', label: '谁更能把机会用正', description: '先看这个机会会养成什么样的人。', tradition: 'virtue' },
       { id: 'care', label: '谁背后更缺人托住', description: '先看具体脆弱处有没有被看见。', tradition: 'care' },
     ],
@@ -693,8 +693,8 @@ export const questions: Question[] = [
     options: [
       { id: 'care', label: '他身边有没有人托住他', description: '先看照护压力有没有被分担。', tradition: 'care' },
       { id: 'virtue', label: '这个选择会把人带成什么样', description: '先看长期承担如何塑造人。', tradition: 'virtue' },
-      { id: 'consequence', label: '调整后能否减少总损失', description: '先看怎样让各方少受伤。', tradition: 'consequence' },
-      { id: 'principle', label: '标准能不能对所有人公平', description: '先看例外会不会破坏信任。', tradition: 'principle' },
+      { id: 'consequence', label: '调整后能否减少长期损害', description: '先看怎样让各方少受伤并能继续运转。', tradition: 'consequence' },
+      { id: 'principle', label: '例外会不会越过底线', description: '先看标准被放宽后是否仍能保护信任。', tradition: 'principle' },
     ],
     scoring: { mode: 'tradition-ranking' },
   },
@@ -706,7 +706,7 @@ export const questions: Question[] = [
     context: '这里关注共同生活的直觉，不需要立场表态。',
     options: [
       { id: 'liberty', label: '别管太细，给人留弹性', description: '先保留个人安排空间。', tradition: 'liberty' },
-      { id: 'republic', label: '办法公开，谁都能修改', description: '先让规则经过共同讨论。', tradition: 'republic' },
+      { id: 'republic', label: '公开讨论，允许共同修正', description: '先让办法不被少数人任意决定。', tradition: 'republic' },
       { id: 'community', label: '照顾常来的人形成的习惯', description: '先看已有生活秩序。', tradition: 'community' },
       { id: 'equality', label: '先防止少数人一直占便宜', description: '先看谁被长期挤出去。', tradition: 'equality' },
     ],
@@ -721,7 +721,7 @@ export const questions: Question[] = [
       { id: 'community', label: '它让熟人之间还有连接', description: '先看共同记忆是否延续。', tradition: 'community' },
       { id: 'equality', label: '它有没有排除不熟的人', description: '先看被挡在外面的人。', tradition: 'equality' },
       { id: 'liberty', label: '不喜欢的人能不能不参加', description: '先看个人退出空间。', tradition: 'liberty' },
-      { id: 'republic', label: '大家能否一起改它', description: '先看参与和修正通道。', tradition: 'republic' },
+      { id: 'republic', label: '大家能否一起改它', description: '先看公开参与和共同修正通道。', tradition: 'republic' },
     ],
     scoring: { mode: 'tradition-ranking' },
   },

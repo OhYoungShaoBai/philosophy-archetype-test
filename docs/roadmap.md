@@ -14,12 +14,16 @@
 - Use internal representativeness checks for coverage, reachability, and simulated concentration without claiming population-level validation.
 - Keep the project framed as a philosophical self-understanding tool, not a validated psychometric instrument.
 
-## v0.3.0 - Shareable result experience
+## v0.3.0 - Expanded result experience
 
 - Add a polished share card layout for each result.
 - Improve copy text for social sharing and personal notes.
-- Decide whether to support saved result images.
-- Consider whether archetype-specific illustrations are needed or whether paired reuse is enough.
+- Support saved portrait result images.
+- Replace reused result illustrations with fifteen archetype-specific images.
+- Expand result interpretation with internal philosopher, school, and reading cards.
+- Add archetype-first portrait content so results explain judgment style, action pattern, relationship habits, and growth edges before introducing philosophy resources.
+- Recalibrate question wording around philosophical reasons rather than generic good answers, and cover broader classic problem families across all five domains.
+- Keep the expanded result experience in-page without public result URLs or external links.
 
 ## v0.4.0 - Public-ready release
 

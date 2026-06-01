@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.0 - Expanded result experience
+
+- Added fifteen new archetype-specific illustrations and moved result images to dedicated archetype asset paths.
+- Added internal archetype encyclopedia content with deeper interpretation, philosopher cards, school cards, and reading recommendations.
+- Added archetype portrait content focused on decision style, action style, relationship pattern, misreadings, and growth edges.
+- Added a result-page deep reading section with in-page detail modals rather than external links.
+- Recalibrated question wording so philosophical reasons are separated from generic good-answer cues, including rule-utilitarian and pragmatist paths.
+- Diversified classic problem coverage across all five domains, especially reducing ontology's overreliance on same-object continuity puzzles.
+- Added share helpers, improved share copy, a portrait share card, optional personal notes, and PNG export support.
+- Kept archetype match scores out of user-facing share content while showing five-domain result data.
+
 ## v0.2.7 - Match strength and mixed profile presentation
 
 - Reframed result presentation from raw numeric match scores to match strength labels: clear, leaning, light, and mixed.

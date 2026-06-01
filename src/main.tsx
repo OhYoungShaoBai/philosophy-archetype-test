@@ -1,8 +1,10 @@
-import { StrictMode, useMemo, useState } from 'react';
+import { StrictMode, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowLeft, ArrowRight, BookOpen, Compass, Copy, RotateCcw, Sparkles } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { ArrowLeft, ArrowRight, BookOpen, Compass, Copy, Download, LibraryBig, RotateCcw, Sparkles, X } from 'lucide-react';
 import { questions } from './data/questions';
 import { archetypes } from './data/results';
+import { philosopherCards, readingCards, schoolCards } from './data/knowledge';
 import {
   axisDimensionKeys,
   calculateResult,
@@ -14,6 +16,8 @@ import {
   shuffleQuestions,
   traditionDimensionKeys,
 } from './lib/scoring';
+import { buildShareCardData, buildShareText } from './lib/share';
+import type { ShareCardData, ShareDomainScore } from './lib/share';
 import type {
   AnswerValue,
   Answers,
@@ -64,29 +68,6 @@ function getResultHeadline(result: TestResult) {
 
 function getRelatedStrengthLabel(level: TestResult['primary']['matchStrength']['level']) {
   return level === 'clear' || level === 'leaning' ? '明显相关' : '轻度相关';
-}
-
-function buildShareText(result: TestResult) {
-  const { archetype } = result.primary;
-  const axisLine = axisDimensionKeys
-    .map((dimension) => `${dimensionDefinitions[dimension].name} ${result.axisScores[dimension]}`)
-    .join(' · ');
-  const traditionLine = getTopTraditions(result)
-    .map((item) => `${item.dimensionName}：${item.label}`)
-    .join(' · ');
-  const highlightLine = result.profileHighlights.map((item) => item.label).join('；');
-
-  return [
-    `我的哲学思想倾向：${getResultHeadline(result)}`,
-    `最近叙事入口：${archetype.title} / ${archetype.englishTitle}`,
-    `贴近程度：${result.primary.matchStrength.label}（${result.primary.matchStrength.description}）`,
-    `思想谱系：${archetype.spectrumLabels.join(' · ')}`,
-    `五领域摘要：${highlightLine}`,
-    `轴向画像：${axisLine}`,
-    `传统倾向：${traditionLine}`,
-    archetype.summary,
-    `相近思想家：${archetype.philosophers.join('、')}`,
-  ].join('\n');
 }
 
 async function writeClipboard(text: string) {
@@ -378,16 +359,353 @@ function TraditionProfile({ result, dimension }: { result: TestResult; dimension
   );
 }
 
+interface KnowledgeDetail {
+  title: string;
+  eyebrow: string;
+  body: string;
+  detail: string;
+}
+
+function getPhilosopherDetail(id: string): KnowledgeDetail {
+  const card = philosopherCards[id];
+  return {
+    title: card.name,
+    eyebrow: card.era,
+    body: card.summary,
+    detail: card.whyItMatters,
+  };
+}
+
+function getSchoolDetail(id: string): KnowledgeDetail {
+  const card = schoolCards[id];
+  return {
+    title: card.name,
+    eyebrow: '思想流派',
+    body: card.summary,
+    detail: card.resultHint,
+  };
+}
+
+function getReadingDetail(id: string): KnowledgeDetail {
+  const card = readingCards[id];
+  return {
+    title: card.title,
+    eyebrow: card.author,
+    body: card.whyRead,
+    detail: '把它当成一条入口即可：先读与你结果相关的章节或主题，再回头看完整脉络。',
+  };
+}
+
+function KnowledgeCardButton({
+  title,
+  eyebrow,
+  description,
+  onOpen,
+}: {
+  title: string;
+  eyebrow: string;
+  description: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button className="knowledge-card" type="button" onClick={onOpen}>
+      <span>{eyebrow}</span>
+      <strong>{title}</strong>
+      <small>{description}</small>
+    </button>
+  );
+}
+
+function DetailModal({ detail, onClose }: { detail: KnowledgeDetail | null; onClose: () => void }) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!detail) return undefined;
+    closeButtonRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [detail, onClose]);
+
+  if (!detail) return null;
+
+  return (
+    <div className="detail-modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <article className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <button ref={closeButtonRef} className="detail-modal-close" type="button" aria-label="关闭" onClick={onClose}>
+          <X size={18} />
+        </button>
+        <p className="section-kicker">{detail.eyebrow}</p>
+        <h2 id="detail-modal-title">{detail.title}</h2>
+        <p>{detail.body}</p>
+        <p className="detail-modal-note">{detail.detail}</p>
+      </article>
+    </div>
+  );
+}
+
+function ShareDomainItem({ score }: { score: ShareDomainScore }) {
+  if (score.kind === 'axis') {
+    return (
+      <div className="share-domain-row">
+        <div>
+          <strong>{score.label}</strong>
+          <small>
+            {score.leftLabel} / {score.rightLabel}
+          </small>
+        </div>
+        <div className="share-axis-meter" aria-label={`${score.label} ${score.value}`}>
+          <span style={{ width: `${score.value}%` }} />
+        </div>
+        <b>{score.value}</b>
+      </div>
+    );
+  }
+
+  return (
+    <div className="share-domain-row tradition">
+      <div>
+        <strong>{score.label}</strong>
+        <small>{score.entries.slice(0, 2).map((entry) => entry.label).join(' / ')}</small>
+      </div>
+      <div className="share-tradition-stack">
+        {score.entries.slice(0, 3).map((entry) => (
+          <span key={entry.label} style={{ width: `${entry.value}%` }} />
+        ))}
+      </div>
+      <b>{score.entries[0].value}</b>
+    </div>
+  );
+}
+
+function ShareCard({ card }: { card: ShareCardData }) {
+  return (
+    <article className="share-card">
+      <div className="share-card-image">
+        <img src={card.image} alt="" />
+      </div>
+      <div className="share-card-body">
+        <p className="section-kicker">{card.headline}</p>
+        <h2>{card.title}</h2>
+        <p className="share-english">{card.englishTitle}</p>
+        <div className="share-tags">
+          {card.spectrumLabels.slice(0, 4).map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
+        <p className="share-summary">{card.summary}</p>
+        <div className="share-domain-list">
+          {card.domainScores.map((score) => (
+            <ShareDomainItem key={score.dimension} score={score} />
+          ))}
+        </div>
+        <div className="share-highlights">
+          {card.profileHighlights.map((highlight) => (
+            <span key={highlight}>{highlight}</span>
+          ))}
+        </div>
+        {card.personalNote && <p className="share-note">我的备注：{card.personalNote}</p>}
+        <p className="share-disclaimer">{card.disclaimer}</p>
+      </div>
+    </article>
+  );
+}
+
+function SharePanel({
+  card,
+  cardRef,
+  personalNote,
+  isExporting,
+  onNoteChange,
+  onCopy,
+  onExport,
+}: {
+  card: ShareCardData;
+  cardRef: RefObject<HTMLDivElement | null>;
+  personalNote: string;
+  isExporting: boolean;
+  onNoteChange: (value: string) => void;
+  onCopy: () => void;
+  onExport: () => void;
+}) {
+  return (
+    <section className="share-section">
+      <div className="share-layout">
+        <div className="share-controls">
+          <p className="section-kicker">Share Card</p>
+          <h2>保存一张竖版结果卡</h2>
+          <p>卡片保留五领域分数和画像摘记，不显示原型匹配百分比。你也可以加一句自己的备注。</p>
+          <label className="share-note-label">
+            <span>个人备注</span>
+            <textarea
+              className="share-note-input"
+              maxLength={80}
+              placeholder="例如：我想把这个结果当成一次自我观察。"
+              value={personalNote}
+              onChange={(event) => onNoteChange(event.target.value)}
+            />
+          </label>
+          <div className="share-actions">
+            <button className="primary-action" type="button" onClick={onExport} disabled={isExporting}>
+              <Download size={18} />
+              {isExporting ? '正在生成' : '保存分享图'}
+            </button>
+            <button className="quiet-action" type="button" onClick={onCopy}>
+              <Copy size={18} />
+              复制分享文案
+            </button>
+          </div>
+        </div>
+        <div className="share-preview">
+          <div ref={cardRef} className="share-card-export">
+            <ShareCard card={card} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ArchetypeEncyclopedia({
+  archetype,
+  onOpen,
+}: {
+  archetype: TestResult['primary']['archetype'];
+  onOpen: (detail: KnowledgeDetail) => void;
+}) {
+  const { encyclopedia } = archetype;
+  const portraitItems = [
+    ['真正想保护', encyclopedia.portrait.coreDrive],
+    ['判断方式', encyclopedia.portrait.decisionStyle],
+    ['行动风格', encyclopedia.portrait.actionStyle],
+    ['关系模式', encyclopedia.portrait.relationshipPattern],
+    ['压力下', encyclopedia.portrait.underPressure],
+    ['容易被误读为', encyclopedia.portrait.misreadAs],
+    ['成长提醒', encyclopedia.portrait.growthEdge],
+  ];
+
+  return (
+    <section className="encyclopedia-section">
+      <div className="encyclopedia-heading">
+        <p className="section-kicker">Deep Reading</p>
+        <h2>{archetype.shortName}的原型百科</h2>
+        <p>先读这个原型怎样判断和行动，再把哲学家、流派和阅读当作相邻思想资源。</p>
+      </div>
+      <div className="portrait-panel">
+        <div className="portrait-panel-heading">
+          <p className="section-kicker">Portrait</p>
+          <h3>原型画像</h3>
+        </div>
+        <div className="portrait-grid">
+          {portraitItems.map(([label, text]) => (
+            <article className="portrait-card" key={label}>
+              <span>{label}</span>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div className="encyclopedia-layout">
+        <article className="encyclopedia-deep-dive">
+          {encyclopedia.deepDive.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+          <div className="practice-prompt">
+            <LibraryBig size={18} />
+            <span>{encyclopedia.practicePrompt}</span>
+          </div>
+        </article>
+        <div className="knowledge-column">
+          <h3>相邻思想资源 · 思想家</h3>
+          <div className="knowledge-card-grid">
+            {encyclopedia.philosopherIds.map((id) => {
+              const card = philosopherCards[id];
+              return (
+                <KnowledgeCardButton
+                  key={id}
+                  title={card.name}
+                  eyebrow={card.era}
+                  description={card.summary}
+                  onOpen={() => onOpen(getPhilosopherDetail(id))}
+                />
+              );
+            })}
+          </div>
+          <h3>相邻思想资源 · 流派</h3>
+          <div className="knowledge-card-grid">
+            {encyclopedia.schoolIds.map((id) => {
+              const card = schoolCards[id];
+              return (
+                <KnowledgeCardButton
+                  key={id}
+                  title={card.name}
+                  eyebrow="思想流派"
+                  description={card.summary}
+                  onOpen={() => onOpen(getSchoolDetail(id))}
+                />
+              );
+            })}
+          </div>
+          <h3>相邻思想资源 · 阅读入口</h3>
+          <div className="knowledge-card-grid">
+            {encyclopedia.readingIds.map((id) => {
+              const card = readingCards[id];
+              return (
+                <KnowledgeCardButton
+                  key={id}
+                  title={card.title}
+                  eyebrow={card.author}
+                  description={card.whyRead}
+                  onOpen={() => onOpen(getReadingDetail(id))}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ResultView({ result, onRestart }: { result: TestResult; onRestart: () => void }) {
   const { archetype } = result.primary;
   const [copied, setCopied] = useState(false);
+  const [personalNote, setPersonalNote] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [selectedDetail, setSelectedDetail] = useState<KnowledgeDetail | null>(null);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const topTraditions = getTopTraditions(result);
   const resultHeadline = getResultHeadline(result);
+  const shareCard = useMemo(() => buildShareCardData(result, { personalNote }), [personalNote, result]);
 
   const copyResult = async () => {
-    await writeClipboard(buildShareText(result));
+    await writeClipboard(buildShareText(result, { personalNote }));
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+  };
+
+  const exportShareCard = async () => {
+    if (!shareCardRef.current) return;
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const dataUrl = await toPng(shareCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#efe5d2',
+      });
+      const link = document.createElement('a');
+      link.download = `philosophy-archetype-${archetype.id}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      setExportError('图片生成失败，可以先复制文案，或稍后重试保存分享图。');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -429,6 +747,19 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
           <figcaption>{archetype.shortName}的思想场景 · 贴近程度：{result.primary.matchStrength.label}</figcaption>
         </figure>
       </section>
+
+      <SharePanel
+        card={shareCard}
+        cardRef={shareCardRef}
+        isExporting={isExporting}
+        personalNote={personalNote}
+        onCopy={copyResult}
+        onExport={exportShareCard}
+        onNoteChange={setPersonalNote}
+      />
+      {exportError && <p className="export-error">{exportError}</p>}
+
+      <ArchetypeEncyclopedia archetype={archetype} onOpen={setSelectedDetail} />
 
       <section className="profile-section five-domain">
         <div className="profile-heading">
@@ -500,32 +831,6 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
         </div>
       </section>
 
-      <section className="reference-section">
-        <div>
-          <p className="section-kicker">Philosophers</p>
-          <h2>相近思想家</h2>
-          <div className="tag-row">
-            {archetype.philosophers.map((name) => (
-              <span key={name}>{name}</span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="section-kicker">Schools</p>
-          <h2>相关流派</h2>
-          <div className="tag-row">
-            {archetype.schools.map((school) => (
-              <span key={school}>{school}</span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="section-kicker">Reading</p>
-          <h2>延伸阅读方向</h2>
-          <p className="reading-hint">{archetype.readingHint}</p>
-        </div>
-      </section>
-
       <section className="related-section">
         <h2>你的邻近类型</h2>
         <div className="related-list">
@@ -538,6 +843,7 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
           ))}
         </div>
       </section>
+      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
     </main>
   );
 }

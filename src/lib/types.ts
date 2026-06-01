@@ -154,6 +154,26 @@ export interface Archetype {
   philosophers: string[];
   schools: string[];
   readingHint: string;
+  encyclopedia: ArchetypeEncyclopedia;
+}
+
+export interface ArchetypeEncyclopedia {
+  portrait: ArchetypePortrait;
+  deepDive: string[];
+  practicePrompt: string;
+  philosopherIds: string[];
+  schoolIds: string[];
+  readingIds: string[];
+}
+
+export interface ArchetypePortrait {
+  coreDrive: string;
+  decisionStyle: string;
+  actionStyle: string;
+  relationshipPattern: string;
+  underPressure: string;
+  misreadAs: string;
+  growthEdge: string;
 }
 
 export type AnswerValue = LikertValue | string | string[];

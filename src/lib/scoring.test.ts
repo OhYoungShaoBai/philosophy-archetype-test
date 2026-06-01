@@ -172,6 +172,73 @@ test('matches each hand-written archetype from an anchored answer path', () => {
   }
 });
 
+test('keeps representative philosophical judgment paths distinct', () => {
+  const samples: Array<{
+    name: string;
+    expected: string;
+    profile: { axisSignature: AxisSignature; traditionSignature: TraditionSignature };
+    forbidden?: string[];
+  }> = [
+    {
+      name: 'rule-utilitarian pragmatist',
+      expected: 'consequence-mender',
+      forbidden: ['rational-configurer', 'idea-builder'],
+      profile: {
+        axisSignature: { epistemology: 'left', meaning: 'left' },
+        traditionSignature: { ontology: ['process'], ethics: ['consequence'], politics: ['republic'] },
+      },
+    },
+    {
+      name: 'kantian public principle',
+      expected: 'rational-configurer',
+      profile: {
+        axisSignature: { epistemology: 'right', meaning: 'right' },
+        traditionSignature: { ontology: ['idea'], ethics: ['principle'], politics: ['republic'] },
+      },
+    },
+    {
+      name: 'care ethics in public coordination',
+      expected: 'care-coordinator',
+      profile: {
+        axisSignature: { epistemology: 'left', meaning: 'right' },
+        traditionSignature: { ontology: ['process'], ethics: ['care'], politics: ['republic'] },
+      },
+    },
+    {
+      name: 'community inheritance',
+      expected: 'community-inheritor',
+      profile: {
+        axisSignature: { epistemology: 'left', meaning: 'right' },
+        traditionSignature: { ontology: ['process'], ethics: ['virtue'], politics: ['community'] },
+      },
+    },
+    {
+      name: 'equality critique',
+      expected: 'equality-revaluator',
+      profile: {
+        axisSignature: { epistemology: 'left', meaning: 'left' },
+        traditionSignature: { ontology: ['process'], ethics: ['care'], politics: ['equality'] },
+      },
+    },
+    {
+      name: 'existential absurd clarity',
+      expected: 'absurd-clear-sighted',
+      profile: {
+        axisSignature: { epistemology: 'left', meaning: 'left' },
+        traditionSignature: { ontology: ['idea'], ethics: ['principle'], politics: ['liberty'] },
+      },
+    },
+  ];
+
+  for (const sample of samples) {
+    const result = calculateResult(questions, archetypes, buildIdealizedAnswers(sample.profile));
+    assert.equal(result.primary.archetype.id, sample.expected, sample.name);
+    for (const forbidden of sample.forbidden ?? []) {
+      assert.notEqual(result.primary.archetype.id, forbidden, `${sample.name} should not collapse into ${forbidden}`);
+    }
+  }
+});
+
 test('idealized internal profiles reach all archetypes without extreme concentration', () => {
   const counts = new Map<string, number>();
   const profiles = enumerateIdealizedProfiles();

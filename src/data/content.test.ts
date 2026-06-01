@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { questions } from './questions.ts';
 import { archetypes } from './results.ts';
+import { philosopherCards, readingCards, schoolCards } from './knowledge.ts';
 import { axisDimensionKeys, dimensionDefinitions, dimensionKeys, traditionDimensionKeys } from '../lib/scoring.ts';
 import type { CalibrationQuestion, ThoughtExperimentQuestion, TraditionKey } from '../lib/types.ts';
 
@@ -201,8 +202,7 @@ test('keeps experiment wording accessible before revealing costs', () => {
 });
 
 test('defines complete hand-written archetypes for the five-domain model', () => {
-  assert.ok(archetypes.length >= 14);
-  assert.ok(archetypes.length <= 16);
+  assert.equal(archetypes.length, 15);
   assert.equal(new Set(archetypes.map((archetype) => archetype.id)).size, archetypes.length);
 
   for (const archetype of archetypes) {
@@ -228,6 +228,163 @@ test('defines complete hand-written archetypes for the five-domain model', () =>
 test('keeps only final referenced illustrations in the public result set', () => {
   const draftFiles = readdirSync(illustrationDir).filter((file) => file.startsWith('prototype-'));
   assert.deepEqual(draftFiles, []);
+});
+
+test('uses unique v0.3 archetype-specific illustrations', () => {
+  const imagePaths = archetypes.map((archetype) => archetype.image);
+  const imageFiles = readdirSync(illustrationDir).filter((file) => file.endsWith('.png'));
+  const archetypeImageFiles = readdirSync(join(illustrationDir, 'archetypes')).filter((file) => file.endsWith('.png'));
+
+  assert.equal(new Set(imagePaths).size, archetypes.length);
+  assert.equal(archetypeImageFiles.length, 15);
+  for (const archetype of archetypes) {
+    assert.ok(archetype.image.startsWith('/illustrations/archetypes/'), archetype.id);
+    assert.ok(existsSync(join(process.cwd(), 'public', archetype.image)), archetype.image);
+  }
+  for (const file of imageFiles) {
+    assert.ok(!imagePaths.includes(`/illustrations/${file}`), file);
+  }
+});
+
+test('defines internal encyclopedia content for every archetype', () => {
+  for (const archetype of archetypes) {
+    assert.ok(archetype.encyclopedia, `${archetype.id} missing encyclopedia`);
+    assert.ok(archetype.encyclopedia.deepDive.length >= 2, `${archetype.id} deep dive`);
+    assert.ok(archetype.encyclopedia.deepDive.every((paragraph) => paragraph.length >= 36), `${archetype.id} deep dive length`);
+    assert.ok(archetype.encyclopedia.practicePrompt.length >= 16, `${archetype.id} practice prompt`);
+    assert.ok(archetype.encyclopedia.portrait, `${archetype.id} missing portrait`);
+    assert.ok(archetype.encyclopedia.philosopherIds.length >= 3, `${archetype.id} philosophers`);
+    assert.ok(archetype.encyclopedia.schoolIds.length >= 2, `${archetype.id} schools`);
+    assert.ok(archetype.encyclopedia.readingIds.length >= 3, `${archetype.id} readings`);
+
+    const portrait = archetype.encyclopedia.portrait;
+    const portraitEntries = [
+      portrait.coreDrive,
+      portrait.decisionStyle,
+      portrait.actionStyle,
+      portrait.relationshipPattern,
+      portrait.underPressure,
+      portrait.misreadAs,
+      portrait.growthEdge,
+    ];
+    assert.ok(portraitEntries.every((entry) => entry.length >= 20), `${archetype.id} portrait depth`);
+    assert.ok(portraitEntries.every((entry) => !entry.includes('http')), `${archetype.id} portrait external link`);
+    const portraitText = portraitEntries.join(' ');
+    for (const philosopher of Object.values(philosopherCards)) {
+      assert.ok(!portraitText.includes(philosopher.name), `${archetype.id} portrait leans on philosopher ${philosopher.name}`);
+    }
+
+    for (const philosopherId of archetype.encyclopedia.philosopherIds) {
+      assert.ok(philosopherCards[philosopherId], `${archetype.id} references missing philosopher ${philosopherId}`);
+    }
+    for (const schoolId of archetype.encyclopedia.schoolIds) {
+      assert.ok(schoolCards[schoolId], `${archetype.id} references missing school ${schoolId}`);
+    }
+    for (const readingId of archetype.encyclopedia.readingIds) {
+      assert.ok(readingCards[readingId], `${archetype.id} references missing reading ${readingId}`);
+    }
+  }
+});
+
+test('question wording separates philosophical reasons instead of rewarding generic good answers', () => {
+  const experimentOptions = experiments.flatMap((experiment) => experiment.steps.flatMap((step) => step.options));
+  const rankingOptions = calibrationQuestions.flatMap((question) => (question.scoring.mode === 'tradition-ranking' ? question.options : []));
+  const allOptionText = [...experimentOptions, ...rankingOptions]
+    .map((option) => ('benefit' in option ? [option.label, option.benefit, option.cost] : [option.label, option.description]).join(' '))
+    .join('\n');
+
+  assert.ok(/长期|可预期|减少伤害|改善/.test(allOptionText), 'consequence wording should include long-run repair language');
+  assert.ok(/不能|底线|边界|权利/.test(allOptionText), 'principle wording should include non-exchangeable boundary language');
+  assert.ok(/共同修正|公开参与|不被任意|共同讨论/.test(allOptionText), 'republic wording should include public participation language');
+  assert.ok(/命名|解释框架|被赋予|如何理解/.test(allOptionText), 'idea wording should focus on interpretation, not mere popularity');
+
+  const ambiguousIdeaPhrases = ['心里认', '心里还怎样记着', '听众是否还认', '大家心里认'];
+  for (const phrase of ambiguousIdeaPhrases) {
+    assert.ok(!allOptionText.includes(phrase), `ambiguous idea wording remains: ${phrase}`);
+  }
+});
+
+test('diversifies ontology questions beyond same-object continuity puzzles', () => {
+  const ontologySteps = experiments.flatMap((experiment) => experiment.steps).filter((step) => step.dimension === 'ontology');
+  const ontologyCalibrations = calibrationQuestions.filter((question) => question.dimension === 'ontology');
+  const ontologyText = [
+    ...ontologySteps.flatMap((step) => [
+      step.prompt,
+      ...step.options.flatMap((option) => [option.label, option.benefit, option.cost]),
+    ]),
+    ...ontologyCalibrations.flatMap((question) =>
+      question.scoring.mode === 'tradition-ranking'
+        ? [question.prompt, question.context ?? '', ...question.options.flatMap((option) => [option.label, option.description])]
+        : [question.prompt, question.context ?? '', question.leftLabel, question.rightLabel],
+    ),
+  ].join(' ');
+  const directContinuityMatches = ontologyText.match(/还是不是|还算不算|是否还是|原来的|同一/g) ?? [];
+
+  assert.ok(directContinuityMatches.length <= 4, `too many direct continuity cues: ${directContinuityMatches.join(', ')}`);
+  assert.match(ontologyText, /材料|旧物|声音文件|零件/, 'ontology should include material composition questions');
+  assert.match(ontologyText, /功能|作用|用途|承担/, 'ontology should include function or role questions');
+  assert.match(ontologyText, /解释|命名|象征|讲述/, 'ontology should include interpretation and naming questions');
+  assert.match(ontologyText, /关系|使用|一起生活|运转|实践/, 'ontology should include relational or practical continuity questions');
+  assert.match(ontologyText, /授权|意愿|本人|发声/, 'ontology should include personhood or agency boundary questions');
+});
+
+test('covers varied classic problem families across all five domains', () => {
+  const textByDimension = Object.fromEntries(
+    dimensionKeys.map((dimension) => {
+      const experimentText = experiments
+        .flatMap((experiment) => experiment.steps)
+        .filter((step) => step.dimension === dimension)
+        .flatMap((step) => [step.prompt, ...step.options.flatMap((option) => [option.label, option.benefit, option.cost])]);
+      const calibrationText = calibrationQuestions
+        .filter((question) => question.dimension === dimension)
+        .flatMap((question) =>
+          question.scoring.mode === 'axis'
+            ? [question.prompt, question.context ?? '', question.leftLabel, question.rightLabel]
+            : [question.prompt, question.context ?? '', ...question.options.flatMap((option) => [option.label, option.description])],
+        );
+
+      return [dimension, [...experimentText, ...calibrationText].join(' ')];
+    }),
+  ) as Record<string, string>;
+
+  const expectedFamilies: Record<string, RegExp[]> = {
+    epistemology: [/来源|复查|依据/, /解释|理由|自洽|连贯/, /预测|推测|模型|走势/, /盲听|错误率|反馈|样本/],
+    ontology: [/材料|零件|旧物|声音文件/, /功能|作用|用途|承担/, /解释|命名|象征|讲述/, /关系|使用|一起生活|实践/],
+    ethics: [/伤害|损害|风险|改善/, /权利|授权|底线|资格/, /品格|正直|庄重|体面/, /脆弱|照看|照护|托住/],
+    politics: [/退出|选择空间|私人生活|弹性/, /公开参与|共同修正|申诉|讨论/, /熟悉|共同记忆|生活关系|习惯/, /排除|挤压|脆弱|占便宜/],
+    meaning: [/想不想|节奏|今天能做|方向/, /承诺|责任|长期|积累/, /哀悼|告别|继续生活|失望/, /重新开始|崩溃|迷茫|没有.*保证/],
+  };
+
+  for (const [dimension, patterns] of Object.entries(expectedFamilies)) {
+    for (const pattern of patterns) {
+      assert.match(textByDimension[dimension], pattern, `${dimension} misses ${pattern}`);
+    }
+  }
+});
+
+test('keeps internal knowledge cards concise and self-contained', () => {
+  for (const card of Object.values(philosopherCards)) {
+    assert.ok(card.name.length >= 2);
+    assert.ok(card.summary.length >= 24);
+    assert.ok(card.whyItMatters.length >= 28);
+    assert.ok(!card.summary.includes('http'));
+    assert.ok(!card.whyItMatters.includes('http'));
+  }
+
+  for (const card of Object.values(schoolCards)) {
+    assert.ok(card.name.length >= 2);
+    assert.ok(card.summary.length >= 18);
+    assert.ok(card.resultHint.length >= 10);
+    assert.ok(!card.summary.includes('http'));
+    assert.ok(!card.resultHint.includes('http'));
+  }
+
+  for (const card of Object.values(readingCards)) {
+    assert.ok(card.title.length >= 2);
+    assert.ok(card.author.length >= 2);
+    assert.ok(card.whyRead.length >= 16);
+    assert.ok(!card.whyRead.includes('http'));
+  }
 });
 
 test('presents match strength without raw match percentages in the result UI source', () => {
