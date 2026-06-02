@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.5 - Linked library paths and result-page focus
+
+- Expanded the internal philosophy library from flat category lists into guided reading paths with cross-category links between archetypes, philosophers, schools, and readings.
+- Added archetype-specific library guide questions and bridge notes so the encyclopedia can carry more philosophy content without changing quiz scoring.
+- Refined the homepage copy to make friend sharing and result comparison clearer while keeping the test framed as philosophical self-understanding.
+- Reordered the result page so the core result, share panel, five-domain portrait, and key interpretation appear before deeper reading.
+- Moved full archetype deep reading out of the result page flow and into the library detail experience, reducing result-page density.
+- Strengthened share copy and share card invitation language without adding public result URLs, percentages, QR codes, external links, login, database, or analytics.
+- Kept the question set, fifteen archetypes, and core scoring algorithm unchanged.
+
 ## v0.4.0 - Share-first homepage and internal philosophy library
 
 - Reframed the first screen as a philosophical self-understanding test, explicitly separating it from psychological diagnosis and mystical entertainment.

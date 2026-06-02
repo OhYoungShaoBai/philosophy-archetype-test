@@ -37,3 +37,48 @@ test('library index links knowledge cards back to valid archetypes without exter
     assert.ok(!item.detail.includes('http'), `${item.kind}/${item.id} detail has external link`);
   }
 });
+
+test('library index builds cross-category links for every knowledge item', () => {
+  const index = buildKnowledgeIndex({ archetypes, philosopherCards, schoolCards, readingCards });
+  const allItems = [...index.archetypes, ...index.philosophers, ...index.schools, ...index.readings];
+  const validKeys = new Set(allItems.map((item) => `${item.kind}:${item.id}`));
+
+  for (const item of allItems) {
+    assert.ok(item.guideQuestion.length >= 12, `${item.kind}/${item.id} should have a guide question`);
+    assert.ok(item.relatedItems.length >= 2, `${item.kind}/${item.id} should expose cross-category links`);
+    assert.ok(
+      item.relatedItems.some((link) => link.kind !== item.kind),
+      `${item.kind}/${item.id} should link outside its own category`,
+    );
+
+    for (const link of item.relatedItems) {
+      assert.ok(validKeys.has(`${link.kind}:${link.id}`), `${item.kind}/${item.id} links missing item ${link.kind}/${link.id}`);
+      assert.notEqual(`${link.kind}:${link.id}`, `${item.kind}:${item.id}`, `${item.kind}/${item.id} links to itself`);
+      assert.ok(!link.description.includes('http'), `${item.kind}/${item.id} related link has external link`);
+    }
+  }
+});
+
+test('library index exposes three guided reading paths with valid targets', () => {
+  const index = buildKnowledgeIndex({ archetypes, philosopherCards, schoolCards, readingCards });
+  const allItems = [...index.archetypes, ...index.philosophers, ...index.schools, ...index.readings];
+  const validKeys = new Set(allItems.map((item) => `${item.kind}:${item.id}`));
+
+  assert.deepEqual(
+    index.paths.map((path) => path.id),
+    ['my-archetype', 'five-domains', 'school-map'],
+  );
+
+  for (const path of index.paths) {
+    assert.ok(path.title.length >= 4, path.id);
+    assert.ok(path.description.length >= 24, path.id);
+    assert.ok(path.steps.length >= 3, path.id);
+    assert.ok(!path.description.includes('http'), `${path.id} has external link`);
+
+    for (const step of path.steps) {
+      assert.ok(step.description.length >= 20, `${path.id}/${step.title}`);
+      assert.ok(validKeys.has(`${step.targetKind}:${step.targetId}`), `${path.id} step links missing ${step.targetKind}/${step.targetId}`);
+      assert.ok(!step.description.includes('http'), `${path.id}/${step.title} has external link`);
+    }
+  }
+});

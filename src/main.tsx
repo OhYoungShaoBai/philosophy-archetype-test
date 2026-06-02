@@ -18,8 +18,8 @@ import {
 } from './lib/scoring';
 import { buildShareCardData, buildShareText } from './lib/share';
 import type { ShareCardData, ShareDomainScore } from './lib/share';
-import { buildKnowledgeIndex, knowledgeCategoryTabs } from './lib/knowledgeIndex';
-import type { KnowledgeCategoryId, KnowledgeIndexItem } from './lib/knowledgeIndex';
+import { buildKnowledgeIndex, getKnowledgeCategoryForKind, knowledgeCategoryTabs } from './lib/knowledgeIndex';
+import type { KnowledgeCategoryId, KnowledgeIndexItem, KnowledgeItemKind, KnowledgeRelatedItem } from './lib/knowledgeIndex';
 import type {
   AnswerValue,
   Answers,
@@ -130,8 +130,8 @@ function Home({ onStart, onHome, onOpenLibrary }: { onStart: () => void; onHome:
   const outcomeItems = [
     ['五领域画像', '认识、真实、伦理、公共生活和人生方向的组合图。'],
     ['原型解读', '15 种手写思想原型，给你一个最近的叙事入口。'],
-    ['分享图', '保存竖版结果卡，分享时不显示原型匹配百分比。'],
-    ['哲学百科', '继续浏览原型、哲学家、流派和阅读推荐。'],
+    ['分享图与文案', '保存竖版结果卡，邀请朋友比较彼此的思想倾向。'],
+    ['路径化百科', '沿着原型、哲学家、流派和阅读推荐继续探索。'],
   ];
 
   return (
@@ -143,6 +143,9 @@ function Home({ onStart, onHome, onOpenLibrary }: { onStart: () => void; onHome:
           <h1>哲学自我理解测试</h1>
           <p className="hero-lede">
             通过四个综合思想实验和一组低提示校准题，生成你的五领域哲学画像、思想谱系与解题路径。它不是心理诊断，也不是娱乐玄学，而是一张帮助你理解自己如何判断的临时地图。
+          </p>
+          <p className="hero-share-hook">
+            测完后可以把结果卡发给朋友：看看你们是在同一条思想路径上相邻，还是从完全不同的问题出发。
           </p>
           <div className="hero-meta" aria-label="测试结构">
             <span>4 个综合实验</span>
@@ -167,7 +170,7 @@ function Home({ onStart, onHome, onOpenLibrary }: { onStart: () => void; onHome:
               <LibraryBig size={18} />
               先逛百科
             </button>
-            <span className="micro-note">答完后可以继续阅读相关原型、哲学家、流派和书目。</span>
+            <span className="micro-note">结果页会先给核心画像，深读内容再进入百科。</span>
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
@@ -419,9 +422,22 @@ interface KnowledgeDetail {
   eyebrow: string;
   body: string;
   detail: string;
+  guideQuestion?: string;
   image?: string;
   tags?: string[];
   relatedArchetypes?: Array<Pick<TestResult['primary']['archetype'], 'id' | 'title' | 'shortName'>>;
+  relatedItems?: KnowledgeRelatedItem[];
+}
+
+const knowledgeKindLabels: Record<KnowledgeItemKind, string> = {
+  archetype: '原型',
+  philosopher: '哲学家',
+  school: '流派',
+  reading: '阅读',
+};
+
+function getKnowledgeItem(kind: KnowledgeItemKind, id: string) {
+  return knowledgeIndex[getKnowledgeCategoryForKind(kind)].find((item) => item.id === id);
 }
 
 function getPhilosopherDetail(id: string): KnowledgeDetail {
@@ -474,7 +490,15 @@ function KnowledgeCardButton({
   );
 }
 
-function DetailModal({ detail, onClose }: { detail: KnowledgeDetail | null; onClose: () => void }) {
+function DetailModal({
+  detail,
+  onClose,
+  onOpenRelated,
+}: {
+  detail: KnowledgeDetail | null;
+  onClose: () => void;
+  onOpenRelated?: (item: KnowledgeRelatedItem) => void;
+}) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -506,6 +530,12 @@ function DetailModal({ detail, onClose }: { detail: KnowledgeDetail | null; onCl
           </div>
         )}
         <p>{detail.body}</p>
+        {detail.guideQuestion && (
+          <div className="detail-guide-question">
+            <strong>导读问题</strong>
+            <span>{detail.guideQuestion}</span>
+          </div>
+        )}
         <div className="detail-modal-note">
           {detail.detail.split('\n').map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
@@ -519,6 +549,23 @@ function DetailModal({ detail, onClose }: { detail: KnowledgeDetail | null; onCl
                 <span key={archetype.id}>
                   {archetype.shortName} · {archetype.title}
                 </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {detail.relatedItems && detail.relatedItems.length > 0 && (
+          <div className="detail-related detail-related-items">
+            <strong>继续索引</strong>
+            <div>
+              {detail.relatedItems.map((item) => (
+                <button
+                  key={`${item.kind}-${item.id}`}
+                  type="button"
+                  onClick={() => onOpenRelated?.(item)}
+                >
+                  <small>{knowledgeKindLabels[item.kind]}</small>
+                  <span>{item.title}</span>
+                </button>
               ))}
             </div>
           </div>
@@ -541,9 +588,11 @@ function buildLibraryDetail(item: KnowledgeIndexItem): KnowledgeDetail {
     eyebrow: item.eyebrow,
     body: item.description,
     detail: item.detail,
+    guideQuestion: item.guideQuestion,
     image: item.image,
     tags: item.tags,
     relatedArchetypes: getRelatedArchetypes(item.relatedArchetypeIds),
+    relatedItems: item.relatedItems,
   };
 }
 
@@ -564,6 +613,12 @@ function LibraryView({
   const [selectedDetail, setSelectedDetail] = useState<KnowledgeDetail | null>(null);
   const items = knowledgeIndex[activeCategory];
   const activeTab = knowledgeCategoryTabs.find((tab) => tab.id === activeCategory) ?? knowledgeCategoryTabs[0];
+  const openLibraryItem = (kind: KnowledgeItemKind, id: string) => {
+    const item = getKnowledgeItem(kind, id);
+    if (!item) return;
+    setActiveCategory(getKnowledgeCategoryForKind(kind));
+    setSelectedDetail(buildLibraryDetail(item));
+  };
 
   return (
     <main className="library-shell">
@@ -586,6 +641,25 @@ function LibraryView({
             开始测试
           </button>
         </div>
+      </section>
+
+      <section className="library-paths" aria-label="导读路径">
+        {knowledgeIndex.paths.map((path) => (
+          <article className="library-path-card" key={path.id}>
+            <p className="section-kicker">{path.eyebrow}</p>
+            <h2>{path.title}</h2>
+            <p>{path.description}</p>
+            <div className="library-path-steps">
+              {path.steps.map((step) => (
+                <button key={`${path.id}-${step.label}`} type="button" onClick={() => openLibraryItem(step.targetKind, step.targetId)}>
+                  <span>{step.label}</span>
+                  <strong>{step.title}</strong>
+                  <small>{step.description}</small>
+                </button>
+              ))}
+            </div>
+          </article>
+        ))}
       </section>
 
       <section className="library-tabs" aria-label="百科分类">
@@ -615,17 +689,18 @@ function LibraryView({
               <span className="library-card-eyebrow">{item.eyebrow}</span>
               <strong>{item.title}</strong>
               <p>{item.description}</p>
+              <small className="library-guide-question">{item.guideQuestion}</small>
               <div className="library-card-tags" aria-label="标签">
                 {item.tags.slice(0, 4).map((tag) => (
                   <span key={tag}>{tag}</span>
                 ))}
               </div>
-              {item.kind !== 'archetype' && <small>{item.relatedArchetypeIds.length} 个相关原型</small>}
+              <small>{item.relatedItems.length} 个相关索引</small>
             </button>
           ))}
         </div>
       </section>
-      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
+      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} onOpenRelated={(item) => openLibraryItem(item.kind, item.id)} />
     </main>
   );
 }
@@ -691,6 +766,7 @@ function ShareCard({ card }: { card: ShareCardData }) {
           ))}
         </div>
         {card.personalNote && <p className="share-note">我的备注：{card.personalNote}</p>}
+        <p className="share-invitation">{card.invitation}</p>
         <p className="share-disclaimer">{card.disclaimer}</p>
       </div>
     </article>
@@ -719,8 +795,8 @@ function SharePanel({
       <div className="share-layout">
         <div className="share-controls">
           <p className="section-kicker">Share Card</p>
-          <h2>保存一张竖版结果卡</h2>
-          <p>卡片保留五领域分数和画像摘记，不显示原型匹配百分比。你也可以加一句自己的备注。</p>
+          <h2>把这张思想地图发给朋友</h2>
+          <p>卡片保留五领域画像和结果摘记，不显示原型匹配百分比。复制文案会邀请朋友也来测一次，看看彼此的思想原型是否相邻。</p>
           <label className="share-note-label">
             <span>个人备注</span>
             <textarea
@@ -747,6 +823,51 @@ function SharePanel({
             <ShareCard card={card} />
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ResultLibraryBridge({
+  archetype,
+  onOpenLibrary,
+  onOpenDetail,
+}: {
+  archetype: TestResult['primary']['archetype'];
+  onOpenLibrary: () => void;
+  onOpenDetail: (kind: KnowledgeItemKind, id: string) => void;
+}) {
+  const item = getKnowledgeItem('archetype', archetype.id);
+  const relatedItems = item?.relatedItems.slice(0, 6) ?? [];
+
+  return (
+    <section className="continue-section result-library-bridge">
+      <div className="bridge-copy">
+        <p className="section-kicker">Continue Reading</p>
+        <h2>继续了解{archetype.shortName}</h2>
+        <p>结果页只保留核心画像；完整原型画像、相邻思想家、流派和阅读路径已经放进站内百科。</p>
+        {item?.guideQuestion && <strong className="bridge-question">{item.guideQuestion}</strong>}
+        <div className="bridge-actions">
+          <button className="primary-action" type="button" onClick={onOpenLibrary}>
+            <LibraryBig size={18} />
+            进入哲学百科
+          </button>
+          {item && (
+            <button className="quiet-action" type="button" onClick={() => onOpenDetail('archetype', archetype.id)}>
+              <Compass size={18} />
+              打开当前原型
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="bridge-link-grid" aria-label="相关百科索引">
+        {relatedItems.map((related) => (
+          <button key={`${related.kind}-${related.id}`} type="button" onClick={() => onOpenDetail(related.kind, related.id)}>
+            <small>{knowledgeKindLabels[related.kind]}</small>
+            <strong>{related.title}</strong>
+            <span>{related.description}</span>
+          </button>
+        ))}
       </div>
     </section>
   );
@@ -901,6 +1022,11 @@ function ResultView({
       setIsExporting(false);
     }
   };
+  const openKnowledgeDetail = (kind: KnowledgeItemKind, id: string) => {
+    const item = getKnowledgeItem(kind, id);
+    if (!item) return;
+    setSelectedDetail(buildLibraryDetail(item));
+  };
 
   return (
     <main className="result-shell">
@@ -958,20 +1084,6 @@ function ResultView({
       />
       {exportError && <p className="export-error">{exportError}</p>}
 
-      <section className="continue-section">
-        <div>
-          <p className="section-kicker">Continue Reading</p>
-          <h2>把结果接到站内百科</h2>
-          <p>如果这个原型只是一个入口，可以继续浏览 15 个原型、相邻哲学家、思想流派和阅读推荐。</p>
-        </div>
-        <button className="primary-action" type="button" onClick={onOpenLibrary}>
-          <LibraryBig size={18} />
-          进入哲学百科
-        </button>
-      </section>
-
-      <ArchetypeEncyclopedia archetype={archetype} onOpen={setSelectedDetail} />
-
       <section className="profile-section five-domain">
         <div className="profile-heading">
           <p className="section-kicker">Five Domains</p>
@@ -1000,6 +1112,19 @@ function ResultView({
 
       <section className="reading-section">
         <article className="text-block">
+          <p className="section-kicker">Insight</p>
+          <h2>你如何组织问题</h2>
+          <p>{archetype.insight}</p>
+        </article>
+        <article className="text-block accent">
+          <p className="section-kicker">Gentle Warning</p>
+          <h2>温和的提醒</h2>
+          <p>{archetype.blindSpot}</p>
+        </article>
+      </section>
+
+      <section className="reading-section">
+        <article className="text-block wide">
           <p className="section-kicker">Spectrum</p>
           <h2>主义谱系说明</h2>
           <p>{archetype.academicNote}</p>
@@ -1011,18 +1136,7 @@ function ResultView({
         </article>
       </section>
 
-      <section className="reading-section">
-        <article className="text-block wide">
-          <p className="section-kicker">Insight</p>
-          <h2>你如何组织问题</h2>
-          <p>{archetype.insight}</p>
-        </article>
-        <article className="text-block accent">
-          <p className="section-kicker">Gentle Warning</p>
-          <h2>温和的提醒</h2>
-          <p>{archetype.blindSpot}</p>
-        </article>
-      </section>
+      <ResultLibraryBridge archetype={archetype} onOpenDetail={openKnowledgeDetail} onOpenLibrary={onOpenLibrary} />
 
       <section className="path-section">
         <div className="profile-heading">
@@ -1054,7 +1168,7 @@ function ResultView({
           ))}
         </div>
       </section>
-      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
+      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} onOpenRelated={(item) => openKnowledgeDetail(item.kind, item.id)} />
     </main>
   );
 }

@@ -42,11 +42,14 @@ export interface ShareCardData {
   domainScores: ShareDomainScore[];
   profileHighlights: string[];
   personalNote?: string;
+  invitation: string;
   disclaimer: string;
 }
 
 const disclaimer = '这不是科学人格诊断，而是一张哲学自我理解的临时地图。';
 const invitation = '也可以来做一次哲学自我理解测试：https://philosophy-archetype-test.vercel.app/';
+const friendInvitation = '看看你的朋友会走向哪一种思想原型，也许你们会在同一张哲学地图上相邻。';
+const cardInvitation = '邀请朋友一起测：比较彼此更靠近哪一种思想原型。';
 
 export function buildShareText(result: TestResult, options: ShareOptions = {}) {
   const { archetype } = result.primary;
@@ -74,6 +77,7 @@ export function buildShareText(result: TestResult, options: ShareOptions = {}) {
     note ? `我的备注：${note}` : '',
     archetype.summary,
     `相近思想家：${archetype.philosophers.join('、')}`,
+    friendInvitation,
     invitation,
     disclaimer,
   ]
@@ -94,6 +98,7 @@ export function buildShareCardData(result: TestResult, options: ShareOptions = {
     domainScores: buildDomainScores(result),
     profileHighlights: result.profileHighlights.slice(0, 3).map((item) => item.label),
     personalNote: normalizePersonalNote(options.personalNote),
+    invitation: cardInvitation,
     disclaimer,
   };
 }

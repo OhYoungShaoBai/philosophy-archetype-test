@@ -34,6 +34,14 @@
 - Keep the v0.3 question set, fifteen archetypes, and core scoring algorithm unchanged.
 - Keep sharing public-ready without public result URLs, login, database, analytics, QR codes, or external links.
 
+## v0.4.5 - Linked library paths and share conversion refinement
+
+- Turn the lightweight library into a path-based internal encyclopedia with cross-links between archetypes, philosophers, schools, and reading recommendations.
+- Add a medium layer of new philosophy guide content through archetype guide questions, bridge notes, and three curated reading paths.
+- Optimize the homepage and share section around friend invitation and result comparison while preserving the non-diagnostic framing.
+- Reduce result-page density by keeping the main result, sharing, five-domain portrait, and key interpretation in-page, while moving full deep reading to library details.
+- Keep the question set, fifteen archetypes, core scoring algorithm, no-public-result-URL policy, and no-external-link library behavior unchanged.
+
 ## v1.0.0 - First stable release
 
 - Freeze the first public question/result set.
