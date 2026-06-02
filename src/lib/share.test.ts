@@ -13,6 +13,7 @@ test('builds share text with domain scores and without archetype match percentag
   assert.ok(text.includes(result.primary.archetype.title));
   assert.ok(text.includes('五领域画像'));
   assert.ok(text.includes('也可以来做一次哲学自我理解测试'));
+  assert.ok(text.includes('看看你的朋友会走向哪一种思想原型'));
   assert.ok(text.includes('我想把这个结果当成一次自我观察。'));
   assert.ok(!text.includes(`${result.primary.matchScore}`));
   assert.ok(!text.includes('匹配度'));
@@ -29,6 +30,7 @@ test('builds a compact portrait share card payload', () => {
   assert.ok(card.profileHighlights.length <= 3);
   assert.ok(card.personalNote?.includes('保留一点怀疑'));
   assert.ok(card.disclaimer.includes('不是科学人格诊断'));
+  assert.ok(card.invitation.includes('邀请朋友'));
   assert.ok(card.domainScores.some((item) => item.kind === 'axis' && typeof item.value === 'number'));
   assert.ok(card.domainScores.some((item) => item.kind === 'tradition' && item.entries.length >= 2));
   assert.equal(Object.hasOwn(card, 'matchScore'), false);
