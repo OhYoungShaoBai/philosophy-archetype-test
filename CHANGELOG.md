@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.0 - Share-first homepage and internal philosophy library
+
+- Reframed the first screen as a philosophical self-understanding test, explicitly separating it from psychological diagnosis and mystical entertainment.
+- Added a pre-test outcome preview for five-domain portraits, archetype interpretation, share cards, and the internal philosophy library.
+- Added a lightweight internal library view with category browsing for archetypes, philosophers, schools, and reading recommendations.
+- Reused v0.3 knowledge data for library cards and in-page detail modals, including related archetype links without external navigation.
+- Strengthened result-page continuation paths into the internal library after sharing or reading the primary archetype.
+- Updated share copy with a public homepage invitation while keeping raw archetype match percentages out of share text.
+- Kept the v0.3 question set, fifteen archetypes, and core scoring algorithm unchanged.
+
 ## v0.3.0 - Expanded result experience
 
 - Added fifteen new archetype-specific illustrations and moved result images to dedicated archetype asset paths.

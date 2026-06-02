@@ -25,11 +25,14 @@
 - Recalibrate question wording around philosophical reasons rather than generic good answers, and cover broader classic problem families across all five domains.
 - Keep the expanded result experience in-page without public result URLs or external links.
 
-## v0.4.0 - Public-ready release
+## v0.4.0 - Share propagation and internal philosophy library
 
-- Prepare deployment options.
-- Add project intro and measurement disclaimer copy.
-- Run broader browser and mobile checks before public sharing.
+- Make the first screen clearly present the project as a philosophical self-understanding test, not a psychological diagnosis or mystical personality label.
+- Preview what users receive before starting: five-domain portrait, archetype reading, share card, and continued library reading.
+- Add a lightweight in-site philosophy library using the existing v0.3 archetype, philosopher, school, and reading data.
+- Add homepage, result-page, and top navigation entry points to the library while keeping the quiz flow focused.
+- Keep the v0.3 question set, fifteen archetypes, and core scoring algorithm unchanged.
+- Keep sharing public-ready without public result URLs, login, database, analytics, QR codes, or external links.
 
 ## v1.0.0 - First stable release
 

@@ -12,9 +12,11 @@ test('builds share text with domain scores and without archetype match percentag
 
   assert.ok(text.includes(result.primary.archetype.title));
   assert.ok(text.includes('五领域画像'));
+  assert.ok(text.includes('也可以来做一次哲学自我理解测试'));
   assert.ok(text.includes('我想把这个结果当成一次自我观察。'));
   assert.ok(!text.includes(`${result.primary.matchScore}`));
   assert.ok(!text.includes('匹配度'));
+  assert.ok(!/%/.test(text));
 });
 
 test('builds a compact portrait share card payload', () => {

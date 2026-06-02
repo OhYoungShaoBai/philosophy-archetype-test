@@ -18,6 +18,8 @@ import {
 } from './lib/scoring';
 import { buildShareCardData, buildShareText } from './lib/share';
 import type { ShareCardData, ShareDomainScore } from './lib/share';
+import { buildKnowledgeIndex, knowledgeCategoryTabs } from './lib/knowledgeIndex';
+import type { KnowledgeCategoryId, KnowledgeIndexItem } from './lib/knowledgeIndex';
 import type {
   AnswerValue,
   Answers,
@@ -32,6 +34,7 @@ import type {
 import './styles.css';
 
 const featuredArchetypes = [archetypes[0], archetypes[11], archetypes[14]];
+const knowledgeIndex = buildKnowledgeIndex({ archetypes, philosopherCards, schoolCards, readingCards });
 
 function getTraditionLabel(dimension: TraditionDimensionKey, tradition: TraditionKey) {
   const definition = dimensionDefinitions[dimension];
@@ -91,15 +94,55 @@ async function writeClipboard(text: string) {
   textarea.remove();
 }
 
-function Home({ onStart }: { onStart: () => void }) {
+function SiteNav({
+  current,
+  onHome,
+  onOpenLibrary,
+  onStart,
+}: {
+  current: 'home' | 'library' | 'result';
+  onHome: () => void;
+  onOpenLibrary: () => void;
+  onStart: () => void;
+}) {
+  return (
+    <header className="site-nav">
+      <button className="brand-button" type="button" onClick={onHome} aria-label="回到首页">
+        <Compass size={18} />
+        <span>哲学思想倾向测试</span>
+      </button>
+      <nav aria-label="站内导航">
+        <button className={current === 'home' ? 'active' : ''} type="button" onClick={onHome}>
+          首页
+        </button>
+        <button className={current === 'library' ? 'active' : ''} type="button" onClick={onOpenLibrary}>
+          百科
+        </button>
+        <button className="nav-start" type="button" onClick={onStart}>
+          开始测试
+        </button>
+      </nav>
+    </header>
+  );
+}
+
+function Home({ onStart, onHome, onOpenLibrary }: { onStart: () => void; onHome: () => void; onOpenLibrary: () => void }) {
+  const outcomeItems = [
+    ['五领域画像', '认识、真实、伦理、公共生活和人生方向的组合图。'],
+    ['原型解读', '15 种手写思想原型，给你一个最近的叙事入口。'],
+    ['分享图', '保存竖版结果卡，分享时不显示原型匹配百分比。'],
+    ['哲学百科', '继续浏览原型、哲学家、流派和阅读推荐。'],
+  ];
+
   return (
     <main className="home-shell">
+      <SiteNav current="home" onHome={onHome} onOpenLibrary={onOpenLibrary} onStart={onStart} />
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">Philosophical Spectrum Test</p>
-          <h1>哲学思想倾向测试</h1>
+          <p className="eyebrow">Philosophical Self-Understanding Test</p>
+          <h1>哲学自我理解测试</h1>
           <p className="hero-lede">
-            通过四个综合思想实验和一组低提示校准题，生成你的五领域哲学画像、思想谱系与解题路径。
+            通过四个综合思想实验和一组低提示校准题，生成你的五领域哲学画像、思想谱系与解题路径。它不是心理诊断，也不是娱乐玄学，而是一张帮助你理解自己如何判断的临时地图。
           </p>
           <div className="hero-meta" aria-label="测试结构">
             <span>4 个综合实验</span>
@@ -107,12 +150,24 @@ function Home({ onStart }: { onStart: () => void }) {
             <span>10 道校准题</span>
             <span>{archetypes.length} 种手写原型</span>
           </div>
+          <div className="outcome-preview" aria-label="答完会得到什么">
+            {outcomeItems.map(([title, description]) => (
+              <article className="outcome-item" key={title}>
+                <strong>{title}</strong>
+                <span>{description}</span>
+              </article>
+            ))}
+          </div>
           <div className="hero-actions">
             <button className="primary-action" type="button" onClick={onStart}>
               <BookOpen size={18} />
               开始测试
             </button>
-            <span className="micro-note">不是科学人格诊断，而是一份哲学自我理解的草图。</span>
+            <button className="quiet-action" type="button" onClick={onOpenLibrary}>
+              <LibraryBig size={18} />
+              先逛百科
+            </button>
+            <span className="micro-note">答完后可以继续阅读相关原型、哲学家、流派和书目。</span>
           </div>
         </div>
         <div className="hero-visual" aria-hidden="true">
@@ -364,6 +419,9 @@ interface KnowledgeDetail {
   eyebrow: string;
   body: string;
   detail: string;
+  image?: string;
+  tags?: string[];
+  relatedArchetypes?: Array<Pick<TestResult['primary']['archetype'], 'id' | 'title' | 'shortName'>>;
 }
 
 function getPhilosopherDetail(id: string): KnowledgeDetail {
@@ -439,10 +497,136 @@ function DetailModal({ detail, onClose }: { detail: KnowledgeDetail | null; onCl
         </button>
         <p className="section-kicker">{detail.eyebrow}</p>
         <h2 id="detail-modal-title">{detail.title}</h2>
+        {detail.image && <img className="detail-modal-image" src={detail.image} alt="" />}
+        {detail.tags && (
+          <div className="detail-modal-tags">
+            {detail.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
+          </div>
+        )}
         <p>{detail.body}</p>
-        <p className="detail-modal-note">{detail.detail}</p>
+        <div className="detail-modal-note">
+          {detail.detail.split('\n').map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+        {detail.relatedArchetypes && detail.relatedArchetypes.length > 0 && (
+          <div className="detail-related">
+            <strong>相关原型</strong>
+            <div>
+              {detail.relatedArchetypes.map((archetype) => (
+                <span key={archetype.id}>
+                  {archetype.shortName} · {archetype.title}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </article>
     </div>
+  );
+}
+
+function getRelatedArchetypes(ids: string[]) {
+  return ids
+    .map((id) => archetypes.find((archetype) => archetype.id === id))
+    .filter((archetype): archetype is TestResult['primary']['archetype'] => Boolean(archetype))
+    .map(({ id, title, shortName }) => ({ id, title, shortName }));
+}
+
+function buildLibraryDetail(item: KnowledgeIndexItem): KnowledgeDetail {
+  return {
+    title: item.title,
+    eyebrow: item.eyebrow,
+    body: item.description,
+    detail: item.detail,
+    image: item.image,
+    tags: item.tags,
+    relatedArchetypes: getRelatedArchetypes(item.relatedArchetypeIds),
+  };
+}
+
+function LibraryView({
+  backLabel,
+  onBack,
+  onHome,
+  onOpenLibrary,
+  onStart,
+}: {
+  backLabel: string;
+  onBack: () => void;
+  onHome: () => void;
+  onOpenLibrary: () => void;
+  onStart: () => void;
+}) {
+  const [activeCategory, setActiveCategory] = useState<KnowledgeCategoryId>('archetypes');
+  const [selectedDetail, setSelectedDetail] = useState<KnowledgeDetail | null>(null);
+  const items = knowledgeIndex[activeCategory];
+  const activeTab = knowledgeCategoryTabs.find((tab) => tab.id === activeCategory) ?? knowledgeCategoryTabs[0];
+
+  return (
+    <main className="library-shell">
+      <SiteNav current="library" onHome={onHome} onOpenLibrary={onOpenLibrary} onStart={onStart} />
+      <section className="library-hero">
+        <div>
+          <p className="eyebrow">Philosophy Library</p>
+          <h1>站内哲学百科</h1>
+          <p>
+            这里不是完整哲学史，而是一间轻量阅览室：从测试里的 15 个原型出发，继续查看相邻哲学家、流派和阅读入口。
+          </p>
+        </div>
+        <div className="library-hero-actions">
+          <button className="quiet-action" type="button" onClick={onBack}>
+            <ArrowLeft size={18} />
+            {backLabel}
+          </button>
+          <button className="primary-action" type="button" onClick={onStart}>
+            <BookOpen size={18} />
+            开始测试
+          </button>
+        </div>
+      </section>
+
+      <section className="library-tabs" aria-label="百科分类">
+        {knowledgeCategoryTabs.map((tab) => (
+          <button
+            className={activeCategory === tab.id ? 'active' : ''}
+            key={tab.id}
+            type="button"
+            aria-pressed={activeCategory === tab.id}
+            onClick={() => setActiveCategory(tab.id)}
+          >
+            <strong>{tab.label}</strong>
+            <span>{tab.description}</span>
+          </button>
+        ))}
+      </section>
+
+      <section className="library-section" aria-labelledby="library-section-title">
+        <div className="library-section-heading">
+          <p className="section-kicker">{activeTab.description}</p>
+          <h2 id="library-section-title">{activeTab.label}</h2>
+        </div>
+        <div className={`library-grid ${activeCategory}`}>
+          {items.map((item) => (
+            <button className={`library-card ${item.kind}`} key={`${item.kind}-${item.id}`} type="button" onClick={() => setSelectedDetail(buildLibraryDetail(item))}>
+              {item.image && <img src={item.image} alt="" />}
+              <span className="library-card-eyebrow">{item.eyebrow}</span>
+              <strong>{item.title}</strong>
+              <p>{item.description}</p>
+              <div className="library-card-tags" aria-label="标签">
+                {item.tags.slice(0, 4).map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+              {item.kind !== 'archetype' && <small>{item.relatedArchetypeIds.length} 个相关原型</small>}
+            </button>
+          ))}
+        </div>
+      </section>
+      <DetailModal detail={selectedDetail} onClose={() => setSelectedDetail(null)} />
+    </main>
   );
 }
 
@@ -669,7 +853,17 @@ function ArchetypeEncyclopedia({
   );
 }
 
-function ResultView({ result, onRestart }: { result: TestResult; onRestart: () => void }) {
+function ResultView({
+  result,
+  onHome,
+  onOpenLibrary,
+  onRestart,
+}: {
+  result: TestResult;
+  onHome: () => void;
+  onOpenLibrary: () => void;
+  onRestart: () => void;
+}) {
   const { archetype } = result.primary;
   const [copied, setCopied] = useState(false);
   const [personalNote, setPersonalNote] = useState('');
@@ -710,6 +904,7 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
 
   return (
     <main className="result-shell">
+      <SiteNav current="result" onHome={onHome} onOpenLibrary={onOpenLibrary} onStart={onRestart} />
       <section className="result-hero">
         <div className="result-copy">
           <p className="eyebrow">{result.resultMode === 'profile-led' ? '你的混合画像' : '你的思想原型'}</p>
@@ -740,6 +935,10 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
               <RotateCcw size={18} />
               重测
             </button>
+            <button className="quiet-action" type="button" onClick={onOpenLibrary}>
+              <LibraryBig size={18} />
+              继续了解
+            </button>
           </div>
         </div>
         <figure className="result-image">
@@ -758,6 +957,18 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
         onNoteChange={setPersonalNote}
       />
       {exportError && <p className="export-error">{exportError}</p>}
+
+      <section className="continue-section">
+        <div>
+          <p className="section-kicker">Continue Reading</p>
+          <h2>把结果接到站内百科</h2>
+          <p>如果这个原型只是一个入口，可以继续浏览 15 个原型、相邻哲学家、思想流派和阅读推荐。</p>
+        </div>
+        <button className="primary-action" type="button" onClick={onOpenLibrary}>
+          <LibraryBig size={18} />
+          进入哲学百科
+        </button>
+      </section>
 
       <ArchetypeEncyclopedia archetype={archetype} onOpen={setSelectedDetail} />
 
@@ -848,8 +1059,11 @@ function ResultView({ result, onRestart }: { result: TestResult; onRestart: () =
   );
 }
 
+type AppStage = 'home' | 'quiz' | 'result' | 'library';
+
 function App() {
-  const [stage, setStage] = useState<'home' | 'quiz' | 'result'>('home');
+  const [stage, setStage] = useState<AppStage>('home');
+  const [libraryReturnStage, setLibraryReturnStage] = useState<'home' | 'result'>('home');
   const [answers, setAnswers] = useState<Answers>({});
   const [orderedQuestions, setOrderedQuestions] = useState<Question[]>(questions);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -864,6 +1078,23 @@ function App() {
     setAnswers({});
     setCurrentIndex(0);
     setStage('quiz');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goHome = () => {
+    setStage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openLibrary = () => {
+    setLibraryReturnStage(stage === 'result' ? 'result' : 'home');
+    setStage('library');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const closeLibrary = () => {
+    setStage(libraryReturnStage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const next = () => {
@@ -875,7 +1106,7 @@ function App() {
     setCurrentIndex((value) => value + 1);
   };
 
-  if (stage === 'home') return <Home onStart={start} />;
+  if (stage === 'home') return <Home onHome={goHome} onOpenLibrary={openLibrary} onStart={start} />;
   if (stage === 'quiz') {
     return (
       <Quiz
@@ -888,7 +1119,22 @@ function App() {
       />
     );
   }
-  return result ? <ResultView result={result} onRestart={start} /> : <Home onStart={start} />;
+  if (stage === 'library') {
+    return (
+      <LibraryView
+        backLabel={libraryReturnStage === 'result' ? '返回结果' : '回到首页'}
+        onBack={closeLibrary}
+        onHome={goHome}
+        onOpenLibrary={openLibrary}
+        onStart={start}
+      />
+    );
+  }
+  return result ? (
+    <ResultView result={result} onHome={goHome} onOpenLibrary={openLibrary} onRestart={start} />
+  ) : (
+    <Home onHome={goHome} onOpenLibrary={openLibrary} onStart={start} />
+  );
 }
 
 createRoot(document.getElementById('root')!).render(

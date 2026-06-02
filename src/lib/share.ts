@@ -46,6 +46,7 @@ export interface ShareCardData {
 }
 
 const disclaimer = '这不是科学人格诊断，而是一张哲学自我理解的临时地图。';
+const invitation = '也可以来做一次哲学自我理解测试：https://philosophy-archetype-test.vercel.app/';
 
 export function buildShareText(result: TestResult, options: ShareOptions = {}) {
   const { archetype } = result.primary;
@@ -73,6 +74,7 @@ export function buildShareText(result: TestResult, options: ShareOptions = {}) {
     note ? `我的备注：${note}` : '',
     archetype.summary,
     `相近思想家：${archetype.philosophers.join('、')}`,
+    invitation,
     disclaimer,
   ]
     .filter(Boolean)
