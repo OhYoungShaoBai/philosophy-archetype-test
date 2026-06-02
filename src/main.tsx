@@ -19,7 +19,7 @@ import {
 import { buildShareCardData, buildShareText } from './lib/share';
 import type { ShareCardData, ShareDomainScore } from './lib/share';
 import { buildKnowledgeIndex, getKnowledgeCategoryForKind, knowledgeCategoryTabs } from './lib/knowledgeIndex';
-import type { KnowledgeCategoryId, KnowledgeIndexItem, KnowledgeItemKind, KnowledgeRelatedItem } from './lib/knowledgeIndex';
+import type { KnowledgeCategoryId, KnowledgeDetailSection, KnowledgeIndexItem, KnowledgeItemKind, KnowledgeRelatedItem } from './lib/knowledgeIndex';
 import type {
   AnswerValue,
   Answers,
@@ -423,6 +423,8 @@ interface KnowledgeDetail {
   body: string;
   detail: string;
   guideQuestion?: string;
+  detailSections?: KnowledgeDetailSection[];
+  portraitItems?: KnowledgeDetailSection[];
   image?: string;
   tags?: string[];
   relatedArchetypes?: Array<Pick<TestResult['primary']['archetype'], 'id' | 'title' | 'shortName'>>;
@@ -512,6 +514,8 @@ function DetailModal({
   }, [detail, onClose]);
 
   if (!detail) return null;
+  const hasPortraitItems = Boolean(detail.portraitItems?.length);
+  const hasDetailSections = Boolean(detail.detailSections?.length);
 
   return (
     <div className="detail-modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -536,11 +540,35 @@ function DetailModal({
             <span>{detail.guideQuestion}</span>
           </div>
         )}
-        <div className="detail-modal-note">
-          {detail.detail.split('\n').map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
+        {hasPortraitItems && (
+          <section className="detail-portrait-panel" aria-label="原型画像">
+            <strong>原型画像</strong>
+            <div className="detail-portrait-grid">
+              {detail.portraitItems?.map((item) => (
+                <article className="detail-portrait-card" key={item.title}>
+                  <span>{item.title}</span>
+                  <p>{item.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {hasDetailSections ? (
+          <section className="detail-section-list" aria-label="百科深读">
+            {detail.detailSections?.map((section) => (
+              <article className="detail-section-card" key={section.title}>
+                <h3>{section.title}</h3>
+                <p>{section.body}</p>
+              </article>
+            ))}
+          </section>
+        ) : (
+          <div className="detail-modal-note">
+            {detail.detail.split('\n').map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        )}
         {detail.relatedArchetypes && detail.relatedArchetypes.length > 0 && (
           <div className="detail-related">
             <strong>相关原型</strong>
@@ -589,6 +617,8 @@ function buildLibraryDetail(item: KnowledgeIndexItem): KnowledgeDetail {
     body: item.description,
     detail: item.detail,
     guideQuestion: item.guideQuestion,
+    detailSections: item.detailSections,
+    portraitItems: item.portraitItems,
     image: item.image,
     tags: item.tags,
     relatedArchetypes: getRelatedArchetypes(item.relatedArchetypeIds),
