@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.6 - Expanded internal encyclopedia depth
+
+- Expanded the internal encyclopedia detail model so archetypes, philosophers, schools, and readings carry structured deep-reading sections rather than short card notes.
+- Restored full archetype portrait depth inside encyclopedia details, including seven portrait dimensions for each archetype.
+- Added archetype deep-reading sections for core question, philosophical lineage, everyday scene, common misreading, growth practice, and continued reading.
+- Added expanded philosopher, school, and reading detail sections while keeping all content internal and self-contained.
+- Kept the result page lightweight and used encyclopedia details as the main deep-reading surface.
+- Kept the question set, fifteen archetypes, core scoring algorithm, and share-result percentage avoidance unchanged.
+
 ## v0.4.5 - Linked library paths and result-page focus
 
 - Expanded the internal philosophy library from flat category lists into guided reading paths with cross-category links between archetypes, philosophers, schools, and readings.

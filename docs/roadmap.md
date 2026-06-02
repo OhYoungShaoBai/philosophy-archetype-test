@@ -42,6 +42,15 @@
 - Reduce result-page density by keeping the main result, sharing, five-domain portrait, and key interpretation in-page, while moving full deep reading to library details.
 - Keep the question set, fifteen archetypes, core scoring algorithm, no-public-result-URL policy, and no-external-link library behavior unchanged.
 
+## v0.4.6 - Encyclopedia depth expansion
+
+- Make the internal encyclopedia the main long-form reading surface while keeping result pages focused and share-friendly.
+- Show full seven-part archetype portraits inside encyclopedia details.
+- Add structured deep-reading sections for every archetype: core question, philosophical lineage, everyday scene, common misreading, growth practice, and continued reading.
+- Expand philosopher, school, and reading detail panels so each entry explains how to read it and how it relates back to archetypes.
+- Keep all expanded content internal, without external links, public result URLs, login, database, analytics, or QR codes.
+- Keep the question set, fifteen archetypes, and core scoring algorithm unchanged.
+
 ## v1.0.0 - First stable release
 
 - Freeze the first public question/result set.

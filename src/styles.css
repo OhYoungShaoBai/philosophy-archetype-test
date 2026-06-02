@@ -1983,7 +1983,7 @@ button {
 
 .detail-modal {
   position: relative;
-  width: min(560px, 100%);
+  width: min(820px, 100%);
   max-height: calc(100dvh - 36px);
   overflow: auto;
   border: 1px solid rgba(55, 47, 36, 0.18);
@@ -2039,6 +2039,71 @@ button {
   margin-top: 14px;
   border-left: 3px solid rgba(143, 46, 42, 0.45);
   padding-left: 14px;
+}
+
+.detail-portrait-panel,
+.detail-section-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.detail-portrait-panel > strong {
+  color: #203f42;
+  font-size: 16px;
+}
+
+.detail-portrait-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-portrait-card,
+.detail-section-card {
+  border: 1px solid rgba(54, 47, 36, 0.13);
+  border-radius: 8px;
+  background: rgba(255, 253, 247, 0.68);
+}
+
+.detail-portrait-card {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+}
+
+.detail-portrait-card:first-child {
+  grid-column: 1 / -1;
+  background: rgba(240, 248, 244, 0.58);
+}
+
+.detail-portrait-card span {
+  color: #8f2e2a;
+  font-family: Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-portrait-card p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detail-section-card {
+  padding: 16px;
+}
+
+.detail-section-card h3 {
+  margin: 0 0 8px;
+  color: #203f42;
+  font-size: 18px;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.detail-section-card p {
+  font-size: 16px;
+  line-height: 1.82;
 }
 
 .detail-guide-question {
@@ -2440,9 +2505,14 @@ button {
   .library-tabs,
   .library-grid,
   .library-grid.archetypes,
+  .detail-portrait-grid,
   .bridge-link-grid,
   .detail-related-items div {
     grid-template-columns: 1fr;
+  }
+
+  .detail-portrait-card:first-child {
+    grid-column: auto;
   }
 
   .share-card-export {

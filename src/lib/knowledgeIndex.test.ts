@@ -82,3 +82,46 @@ test('library index exposes three guided reading paths with valid targets', () =
     }
   }
 });
+
+test('library index carries expanded detail sections for the v0.4.6 encyclopedia', () => {
+  const index = buildKnowledgeIndex({ archetypes, philosopherCards, schoolCards, readingCards });
+  const portraitLabels = ['真正想保护', '判断方式', '行动风格', '关系模式', '压力下', '容易被误读为', '成长提醒'];
+  const archetypeSectionLabels = ['核心问题', '哲学谱系', '生活场景', '常见误读', '成长练习', '继续阅读'];
+
+  for (const item of index.archetypes) {
+    assert.deepEqual(item.portraitItems.map((entry) => entry.title), portraitLabels, `${item.id} portrait labels`);
+    assert.ok(item.portraitItems.every((entry) => entry.body.length >= 20), `${item.id} portrait body depth`);
+    assert.deepEqual(item.detailSections.map((entry) => entry.title), archetypeSectionLabels, `${item.id} archetype sections`);
+    assert.ok(item.detailSections.every((entry) => entry.body.length >= 36), `${item.id} archetype section depth`);
+  }
+
+  for (const item of index.philosophers) {
+    assert.deepEqual(item.detailSections.map((entry) => entry.title), ['核心问题', '与你的关系', '阅读提醒'], item.id);
+    assert.ok(item.detailSections.every((entry) => entry.body.length >= 32), `${item.id} philosopher detail depth`);
+  }
+
+  for (const item of index.schools) {
+    assert.deepEqual(item.detailSections.map((entry) => entry.title), ['它关心什么', '容易误解什么', '相关原型'], item.id);
+    assert.ok(item.detailSections.every((entry) => entry.body.length >= 32), `${item.id} school detail depth`);
+  }
+
+  for (const item of index.readings) {
+    assert.deepEqual(item.detailSections.map((entry) => entry.title), ['先读什么', '适合谁', '读的时候问什么'], item.id);
+    assert.ok(item.detailSections.every((entry) => entry.body.length >= 28), `${item.id} reading detail depth`);
+  }
+});
+
+test('expanded library detail sections stay internal and self-contained', () => {
+  const index = buildKnowledgeIndex({ archetypes, philosopherCards, schoolCards, readingCards });
+  const allItems = [...index.archetypes, ...index.philosophers, ...index.schools, ...index.readings];
+
+  for (const item of allItems) {
+    const detailText = [
+      item.bridgeNote,
+      ...item.detailSections.flatMap((section) => [section.title, section.body]),
+      ...item.portraitItems.flatMap((section) => [section.title, section.body]),
+    ].join(' ');
+    assert.ok(!detailText.includes('http'), `${item.kind}/${item.id} expanded detail has external link`);
+    assert.ok(detailText.length >= 220, `${item.kind}/${item.id} expanded detail should not be a thin card`);
+  }
+});
